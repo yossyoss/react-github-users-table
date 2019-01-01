@@ -1,25 +1,58 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from "react";
+import SearchBar from "./components/SearchBar";
+import Results from "./components/Results";
+import github from "./api/github";
 
 class App extends Component {
+  state = {
+    users: [],
+    sort: {
+      column: null,
+      direction: "desc"
+    }
+  };
+  onFormSubmit = async term => {
+    const response = await github.get(`users?q=${term}`);
+    this.setState({ users: response.data.items });
+  };
+  sortBy = column => {
+    const direction = this.state.sort.direction === "asc" ? "desc" : "asc";
+    const sortedData = this.state.users.sort((a, b) => {
+      if (column === "login") {
+        const nameA = a.login.toUpperCase(); 
+        const nameB = b.login.toUpperCase();
+        if (nameA < nameB) {
+          return -1;
+        }
+        if (nameA > nameB) {
+          return 1;
+        }
+        // names must be equal
+        return 0;
+      } else {
+        if (a.id < b.id) return -1;
+        if (a.id > b.id) return 1;
+        return 0;
+      }
+    });
+
+    if (direction === "desc") {
+      sortedData.reverse();
+    }
+
+    this.setState({
+      users: sortedData,
+      sort: {
+        column,
+        direction
+      }
+    });
+  };
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+      <div className="ui container">
+        <SearchBar onFormSubmit={this.onFormSubmit} />
+        <Results users={this.state.users} sortBy={this.sortBy} />
       </div>
     );
   }

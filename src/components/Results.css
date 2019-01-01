@@ -1,0 +1,6 @@
+.click-col {
+  cursor: pointer !important;
+}
+.click-col:hover {
+  background-color: lightblue !important;
+}
